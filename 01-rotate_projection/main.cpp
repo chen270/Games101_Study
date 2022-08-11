@@ -44,7 +44,7 @@ Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio,
     // TODO: Implement this function
     // Create the projection matrix for the given parameters.
     // Then return it.
-
+#if 0
     zNear = -zNear;
     zFar = -zFar;
 
@@ -55,8 +55,68 @@ Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio,
 	projection(3, 2) = 1;
     projection(2, 3) = -2.0f * zNear * zFar / (zNear - zFar);
 
+#else
+    
+	zNear = -zNear;
+	zFar = -zFar;
+
+    // zNear and zFar > 0, r= -l, t = -b
+    float t = abs(zNear) * tan(eye_fov * MY_PI / 360.0f);
+    float r = t * aspect_ratio;
+	Eigen::Matrix4f scaleMat;
+	Eigen::Matrix4f moveMat;
+	Eigen::Matrix4f orthoMat;
+
+    //缩放矩阵
+    scaleMat <<
+        1.0f / r, 0, 0, 0,
+        0, 1.0f / t, 0, 0,
+        0, 0, 2.0f / (zNear - zFar), 0,
+		0, 0, 0, 1;
+
+    //平移矩阵
+    moveMat <<
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, -(zNear + zFar)/2.0f,
+		0, 0, 0, 1;
+
+    //透视矩阵
+    orthoMat <<
+		zNear, 0, 0, 0,
+		0, zNear, 0, 0,
+		0, 0, zNear + zFar, -zNear * zFar,
+		0, 0, 1, 0;
+
+    projection = scaleMat * moveMat * orthoMat * projection;
+#endif
+
     return projection;
 }
+
+Eigen::Matrix4f get_rotation(Vector3f axis, float angle)
+{
+    Eigen::Matrix4f rotate;
+    float alpha = angle * MY_PI / 180;
+
+    // 罗德里格旋转公式
+    Eigen::Matrix3f N_mat;
+    N_mat <<
+        0, -axis.z(), axis.y(),
+        axis.z(), 0, -axis.x(),
+        -axis.y(), axis.x(), 0;
+
+    Eigen::Matrix3f res = cos(alpha)* Eigen::Matrix3f::Identity() + (1 - cos(alpha)) * axis * axis.transpose() + sin(alpha) * N_mat;
+
+    rotate <<
+        res(0, 0), res(0, 1), res(0, 2), 0,
+        res(1, 0), res(1, 1), res(1, 2), 0,
+        res(2, 0), res(2, 1), res(2, 2), 0,
+        0, 0, 0, 1;
+
+    return rotate;
+}
+
 
 int main(int argc, const char** argv)
 {
