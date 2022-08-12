@@ -141,6 +141,19 @@ void rst::rasterizer::draw(rst::pos_buf_id pos_buffer, rst::ind_buf_id ind_buffe
     auto& buf = pos_buf[pos_buffer.pos_id];
     auto& ind = ind_buf[ind_buffer.ind_id];
 
+    /***
+     * f1,f2是什么意思？因为框架中的near是0.1，far是50.(这儿near,far都是距离值，是正值。我只能这么理解吧），
+     * 所以f1,f2的作用就是把clip space的z值变换到[near,far]的范围中。
+     * 我LOG了一下，第一个三角形的clip space z为 -0.975379，变换后为0.714285；
+     * 第二个三角形从-0.983968变换到0.50002。
+     * 因为框架中一直使用的是右手坐标系，且view space的view方向为-z。
+     * 因为第一个三角形的z值-0.97xx大于第二个三角形的-0.98xxx，离camera更近，所以第一个三角形应该挡住第二个三角形。
+     * 但是真正做深度测试的时候，使用的是变换到[0.1,50]范围的z值。
+     * 这样第一个三角形的0.7xxx由于大于第二个三角形的0.5xxx，
+     * 因此如果直接使用z_interpolated 并且按照小值离camera近的逻辑去比较就会得到第二个三角形挡住第一个三角形的错误结果。
+     * 为了得到正确的结果，简单的取个负修正一下确实可以，但这里面的逻辑确实搞错了。
+     * 根源就在于作业2的pdf里面说的：为了方便同学们写代码,我们将 z 进行了反转,保证都是正数,并且越大表示离视点越远。
+    */
     float f1 = (100 - 0.1) / 2.0;
     float f2 = (100 + 0.1) / 2.0;
 
@@ -163,6 +176,8 @@ void rst::rasterizer::draw(rst::pos_buf_id pos_buffer, rst::ind_buf_id ind_buffe
         {
             vert.x() = 0.5*width*(vert.x()+1.0);
             vert.y() = 0.5*height*(vert.y()+1.0);
+
+            // f1,f2的作用就是把clip space的z值变换到[near,far]的范围中。
             vert.z() = vert.z() * f1 + f2;
         }
 
