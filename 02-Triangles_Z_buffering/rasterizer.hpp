@@ -1,4 +1,4 @@
-//
+ï»¿//
 // Created by goksu on 4/6/19.
 //
 
@@ -96,7 +96,7 @@ namespace rst
 
 		int get_index(int x, int y);
 
-		// ²¹³ä, SSAA
+		// è¡¥å……, SSAA
 		std::vector<Eigen::Vector3f> ssaa_frame_buf;
 
 		std::vector<float> ssaa_depth_buf;
