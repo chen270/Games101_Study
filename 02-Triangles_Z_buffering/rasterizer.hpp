@@ -93,11 +93,20 @@ namespace rst
         std::vector<Eigen::Vector3f> frame_buf;
 
         std::vector<float> depth_buf;
-        int get_index(int x, int y);
+
+		int get_index(int x, int y);
+
+		// ²¹³ä, SSAA
+		std::vector<Eigen::Vector3f> ssaa_frame_buf;
+
+		std::vector<float> ssaa_depth_buf;
 
         int width, height;
 
         int next_id = 0;
         int get_next_id() { return next_id++; }
+        int rst::rasterizer::get_super_index(int x, int y);
+    public:
+        bool SSAA = true;
     };
 }

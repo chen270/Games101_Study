@@ -14,3 +14,7 @@
 # Fortran module files
 *.mod
 *.smod
+/02-Triangles_Z_buffering/build
+/third_party
+/01-rotate_projection/build
+/.vscode

@@ -25,6 +25,10 @@ Eigen::Matrix4f get_view_matrix(Eigen::Vector3f eye_pos)
 Eigen::Matrix4f get_model_matrix(float rotation_angle)
 {
     Eigen::Matrix4f model = Eigen::Matrix4f::Identity();
+    model(0, 0) = cos(rotation_angle);
+    model(0, 1) = -sin(rotation_angle);
+    model(1, 0) = sin(rotation_angle);
+    model(1, 1) = cos(rotation_angle);
     return model;
 }
 
@@ -32,6 +36,39 @@ Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio, float z
 {
     // TODO: Copy-paste your implementation from the previous assignment.
     Eigen::Matrix4f projection;
+
+	zNear = -zNear;
+	zFar = -zFar;
+
+    // zNear and zFar > 0, r= -l, t = -b
+    float t = abs(zNear) * tan(eye_fov * MY_PI / 360.0f);
+    float r = t * aspect_ratio;
+	Eigen::Matrix4f scaleMat;
+	Eigen::Matrix4f moveMat;
+	Eigen::Matrix4f orthoMat;
+
+    // 缩放矩阵
+    scaleMat <<
+        1.0f / r, 0, 0, 0,
+        0, 1.0f / t, 0, 0,
+        0, 0, 2.0f / (zNear - zFar), 0,
+		0, 0, 0, 1;
+
+    // 平移矩阵
+    moveMat <<
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, -(zNear + zFar)/2.0f,
+		0, 0, 0, 1;
+
+    // 透视矩阵
+    orthoMat <<
+		zNear, 0, 0, 0,
+		0, zNear, 0, 0,
+		0, 0, zNear + zFar, -zNear * zFar,
+		0, 0, 1, 0;
+
+    projection = scaleMat * moveMat * orthoMat;
 
     return projection;
 }
@@ -48,9 +85,10 @@ int main(int argc, const char** argv)
         filename = std::string(argv[1]);
     }
 
+    //rst::rasterizer r(700, 700);
     rst::rasterizer r(700, 700);
 
-    Eigen::Vector3f eye_pos = {0,0,5};
+    Eigen::Vector3f eye_pos = {0,0,4};
 
 
     std::vector<Eigen::Vector3f> pos
@@ -114,6 +152,7 @@ int main(int argc, const char** argv)
 
         r.draw(pos_id, ind_id, col_id, rst::Primitive::Triangle);
 
+        //cv::Mat image(700, 700, CV_32FC3, r.frame_buffer().data());
         cv::Mat image(700, 700, CV_32FC3, r.frame_buffer().data());
         image.convertTo(image, CV_8UC3, 1.0f);
         cv::cvtColor(image, image, cv::COLOR_RGB2BGR);
