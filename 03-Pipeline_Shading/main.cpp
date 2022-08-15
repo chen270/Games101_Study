@@ -8,6 +8,13 @@
 #include "Texture.hpp"
 #include "OBJ_Loader.h"
 
+#ifndef DIR_PATH
+#error shader path not define!
+#else
+#define S_PATH(str) DIR_PATH##str
+#endif
+
+
 Eigen::Matrix4f get_view_matrix(Eigen::Vector3f eye_pos)
 {
     Eigen::Matrix4f view = Eigen::Matrix4f::Identity();
@@ -50,7 +57,43 @@ Eigen::Matrix4f get_model_matrix(float angle)
 Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio, float zNear, float zFar)
 {
     // TODO: Use the same projection matrix from the previous assignments
+		// TODO: Copy-paste your implementation from the previous assignment.
+	Eigen::Matrix4f projection;
 
+	zNear = -zNear;
+	zFar = -zFar;
+
+	// zNear and zFar > 0, r= -l, t = -b
+	float t = abs(zNear) * tan(eye_fov * MY_PI / 360.0f);
+	float r = t * aspect_ratio;
+	Eigen::Matrix4f scaleMat;
+	Eigen::Matrix4f moveMat;
+	Eigen::Matrix4f orthoMat;
+
+	// Ëõ·Å¾ØÕó
+	scaleMat <<
+		1.0f / r, 0, 0, 0,
+		0, 1.0f / t, 0, 0,
+		0, 0, 2.0f / (zNear - zFar), 0,
+		0, 0, 0, 1;
+
+	// Æ½ÒÆ¾ØÕó
+	moveMat <<
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, -(zNear + zFar) / 2.0f,
+		0, 0, 0, 1;
+
+	// Í¸ÊÓ¾ØÕó
+	orthoMat <<
+		zNear, 0, 0, 0,
+		0, zNear, 0, 0,
+		0, 0, zNear + zFar, -zNear * zFar,
+		0, 0, 1, 0;
+
+	projection = scaleMat * moveMat * orthoMat;
+
+	return projection;
 }
 
 Eigen::Vector3f vertex_shader(const vertex_shader_payload& payload)
@@ -247,10 +290,10 @@ int main(int argc, const char** argv)
 
     std::string filename = "output.png";
     objl::Loader Loader;
-    std::string obj_path = "../models/spot/";
+    std::string obj_path = S_PATH("./models/spot/");
 
     // Load .obj File
-    bool loadout = Loader.LoadFile("../models/spot/spot_triangulated_good.obj");
+    bool loadout = Loader.LoadFile(S_PATH("./models/spot/spot_triangulated_good.obj"));
     for(auto mesh:Loader.LoadedMeshes)
     {
         for(int i=0;i<mesh.Vertices.size();i+=3)
