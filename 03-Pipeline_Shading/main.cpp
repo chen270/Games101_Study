@@ -1,4 +1,4 @@
-#include <iostream>
+ï»¿#include <iostream>
 #include <opencv2/opencv.hpp>
 
 #include "global.hpp"
@@ -9,7 +9,7 @@
 #include "OBJ_Loader.h"
 
 #ifndef DIR_PATH
-#error shader path not define!
+#error  path not define!
 #else
 #define S_PATH(str) DIR_PATH##str
 #endif
@@ -70,21 +70,21 @@ Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio, float z
 	Eigen::Matrix4f moveMat;
 	Eigen::Matrix4f orthoMat;
 
-	// Ëõ·Å¾ØÕó
+	// ç¼©æ”¾çŸ©é˜µ
 	scaleMat <<
 		1.0f / r, 0, 0, 0,
 		0, 1.0f / t, 0, 0,
 		0, 0, 2.0f / (zNear - zFar), 0,
 		0, 0, 0, 1;
 
-	// Æ½ÒÆ¾ØÕó
+	// å¹³ç§»çŸ©é˜µ
 	moveMat <<
 		1, 0, 0, 0,
 		0, 1, 0, 0,
 		0, 0, 1, -(zNear + zFar) / 2.0f,
 		0, 0, 0, 1;
 
-	// Í¸ÊÓ¾ØÕó
+	// é€è§†çŸ©é˜µ
 	orthoMat <<
 		zNear, 0, 0, 0,
 		0, zNear, 0, 0,
