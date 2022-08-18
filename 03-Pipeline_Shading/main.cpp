@@ -1,6 +1,6 @@
 ﻿#include <iostream>
 #include <opencv2/opencv.hpp>
-
+#include <algorithm>
 #include "global.hpp"
 #include "rasterizer.hpp"
 #include "Triangle.hpp"
@@ -93,7 +93,17 @@ Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio, float z
 
 	projection = scaleMat * moveMat * orthoMat;
 
-	return projection;
+
+    // 推导中: 把所有东西都转换到看向Z负半轴，因此Z值是负的，并且是越小越远，这与框架的假定相反;
+    // 这里将z取反，因为z值要改成越大越远;
+    Eigen::Matrix4f inverseMat;
+    inverseMat <<
+        1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, -1, 0,
+		0, 0, 0, 1;
+
+	return inverseMat*projection;
 }
 
 Eigen::Vector3f vertex_shader(const vertex_shader_payload& payload)
@@ -163,6 +173,7 @@ Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload& payload)
 
 Eigen::Vector3f phong_fragment_shader(const fragment_shader_payload& payload)
 {
+    // 实现 Blinn-Phong 模型
     Eigen::Vector3f ka = Eigen::Vector3f(0.005, 0.005, 0.005);
     Eigen::Vector3f kd = payload.color;
     Eigen::Vector3f ks = Eigen::Vector3f(0.7937, 0.7937, 0.7937);
@@ -185,7 +196,14 @@ Eigen::Vector3f phong_fragment_shader(const fragment_shader_payload& payload)
     {
         // TODO: For each light source in the code, calculate what the *ambient*, *diffuse*, and *specular* 
         // components are. Then, accumulate that result on the *result_color* object.
-        
+        auto l = (light.position - point).normalized();
+        auto r_2 = (light.position - point).dot((light.position - point));
+        auto h = (eye_pos + l).normalized();
+
+        auto ambientCol = amb_light_intensity;
+        auto diffuseCol = (light.intensity / r_2) * std::max(normal.dot(l), 0.0f);
+        auto specularCol = (light.intensity / r_2) * std::pow(std::max(0.0f, normal.dot(h)), p);
+        result_color += (ka.cwiseProduct(ambientCol) + kd.cwiseProduct(diffuseCol) + ks.cwiseProduct(specularCol));
     }
 
     return result_color * 255.f;
@@ -288,7 +306,7 @@ int main(int argc, const char** argv)
     float angle = 140.0;
     bool command_line = false;
 
-    std::string filename = "output.png";
+    std::string filename = S_PATH("./output.png");
     objl::Loader Loader;
     std::string obj_path = S_PATH("./models/spot/");
 
@@ -385,12 +403,13 @@ int main(int argc, const char** argv)
 
         //r.draw(pos_id, ind_id, col_id, rst::Primitive::Triangle);
         r.draw(TriangleList);
+        //auto data_tmp = r.frame_buffer();
         cv::Mat image(700, 700, CV_32FC3, r.frame_buffer().data());
         image.convertTo(image, CV_8UC3, 1.0f);
         cv::cvtColor(image, image, cv::COLOR_RGB2BGR);
 
         cv::imshow("image", image);
-        cv::imwrite(filename, image);
+        //cv::imwrite(filename, image);
         key = cv::waitKey(10);
 
         if (key == 'a' )
