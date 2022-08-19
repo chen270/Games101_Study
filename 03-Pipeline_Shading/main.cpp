@@ -137,7 +137,7 @@ Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload& payload)
     if (payload.texture)
     {
         // TODO: Get the texture value at the texture coordinates of the current fragment
-
+        return_color = payload.texture->getColor(payload.tex_coords.x(), payload.tex_coords.y());
     }
     Eigen::Vector3f texture_color;
     texture_color << return_color.x(), return_color.y(), return_color.z();
@@ -165,7 +165,14 @@ Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload& payload)
     {
         // TODO: For each light source in the code, calculate what the *ambient*, *diffuse*, and *specular* 
         // components are. Then, accumulate that result on the *result_color* object.
+		auto l = (light.position - point).normalized();
+		auto r_2 = (light.position - point).dot((light.position - point));
+		auto h = (eye_pos + l).normalized();
 
+		auto ambientCol = amb_light_intensity;
+		auto diffuseCol = (light.intensity / r_2) * std::max(normal.dot(l), 0.0f);
+		auto specularCol = (light.intensity / r_2) * std::pow(std::max(0.0f, normal.dot(h)), p);
+		result_color += (ka.cwiseProduct(ambientCol) + kd.cwiseProduct(diffuseCol) + ks.cwiseProduct(specularCol));
     }
 
     return result_color * 255.f;
@@ -333,6 +340,16 @@ int main(int argc, const char** argv)
     r.set_texture(Texture(obj_path + texture_path));
 
     std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = phong_fragment_shader;
+
+    // Test
+    std::string switchStr = "texture";
+    if (switchStr == "texture")
+    {
+		active_shader = texture_fragment_shader;
+		texture_path = "spot_texture.png";
+		r.set_texture(Texture(obj_path + texture_path));
+    }
+
 
     if (argc >= 2)
     {
