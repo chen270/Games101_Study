@@ -56,7 +56,7 @@ Eigen::Matrix4f get_model_matrix(float angle)
 
 Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio, float zNear, float zFar)
 {
-    // TODO: Use the same projection matrix from the previous assignments
+	// TODO: Use the same projection matrix from the previous assignments
 		// TODO: Copy-paste your implementation from the previous assignment.
 	Eigen::Matrix4f projection;
 
@@ -94,16 +94,16 @@ Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio, float z
 	projection = scaleMat * moveMat * orthoMat;
 
 
-    // 推导中: 把所有东西都转换到看向Z负半轴，因此Z值是负的，并且是越小越远，这与框架的假定相反;
-    // 这里将z取反，因为z值要改成越大越远;
-    Eigen::Matrix4f inverseMat;
-    inverseMat <<
-        1, 0, 0, 0,
+	// 推导中: 把所有东西都转换到看向Z负半轴，因此Z值是负的，并且是越小越远，这与框架的假定相反;
+	// 这里将z取反，因为z值要改成越大越远;
+	Eigen::Matrix4f inverseMat;
+	inverseMat <<
+		1, 0, 0, 0,
 		0, 1, 0, 0,
 		0, 0, -1, 0,
 		0, 0, 0, 1;
 
-	return inverseMat*projection;
+	return inverseMat * projection;
 }
 
 Eigen::Vector3f vertex_shader(const vertex_shader_payload& payload)
@@ -285,20 +285,34 @@ Eigen::Vector3f bump_fragment_shader(const fragment_shader_payload& payload)
     Eigen::Vector3f color = payload.color; 
     Eigen::Vector3f point = payload.view_pos;
     Eigen::Vector3f normal = payload.normal;
-
+    Eigen::Vector2f tex_coords = payload.tex_coords;
 
     float kh = 0.2, kn = 0.1;
 
-    // TODO: Implement bump mapping here
-    // Let n = normal = (x, y, z)
-    // Vector t = (x*y/sqrt(x*x+z*z),sqrt(x*x+z*z),z*y/sqrt(x*x+z*z))
-    // Vector b = n cross product t
-    // Matrix TBN = [t b n]
-    // dU = kh * kn * (h(u+1/w,v)-h(u,v))
-    // dV = kh * kn * (h(u,v+1/h)-h(u,v))
-    // Vector ln = (-dU, -dV, 1)
-    // Normal n = normalize(TBN * ln)
+    // Implement bump mapping here 凹凸贴图
+    // 通过改变物体表面的法线朝向而不是改变物体的体积来实现细小的凹凸不平的效果
+	float x = normal.x();
+	float y = normal.y();
+	float z = normal.z();
+    Eigen::Vector3f t = Eigen::Vector3f(x * y / sqrt(x * x + z * z), sqrt(x * x + z * z), z * y / sqrt(x * x + z * z));
+    Eigen::Vector3f b = normal.cross(t);
+    Eigen::Matrix3f TBN;
+    TBN <<
+        t.x(), b.x(), normal.x(),
+        t.y(), b.y(), normal.y(),
+        t.z(), b.z(), normal.z();
+    
+    float u = tex_coords.x();
+    float v = tex_coords.y();
+    float w = payload.texture->width;
+    float h = payload.texture->height;
 
+    // 疑惑点
+    // 要用两处 norm 之差，而不是能用两处差的 norm，使用两处差的 norm就会导致贴图结果很怪异
+    float dU = kh * kn * (payload.texture->getColor(u + 1.0f / w, v).norm() - payload.texture->getColor(u, v).norm());
+    float dV = kh * kn * (payload.texture->getColor(u, v + 1.0f / h).norm() - payload.texture->getColor(u, v).norm());
+	Eigen::Vector3f ln = Eigen::Vector3f(-dU, -dV, 1);
+    normal = (TBN * ln).normalized();
 
     Eigen::Vector3f result_color = {0, 0, 0};
     result_color = normal;
@@ -342,14 +356,19 @@ int main(int argc, const char** argv)
     std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = phong_fragment_shader;
 
     // Test
-    std::string switchStr = "texture";
+    std::string switchStr = "bump";
     if (switchStr == "texture")
     {
+		std::cout << "Rasterizing using the texture shader\n";
 		active_shader = texture_fragment_shader;
 		texture_path = "spot_texture.png";
 		r.set_texture(Texture(obj_path + texture_path));
     }
-
+    else if (switchStr == "bump")
+    {
+		std::cout << "Rasterizing using the bump shader\n";
+		active_shader = bump_fragment_shader;
+    }
 
     if (argc >= 2)
     {
