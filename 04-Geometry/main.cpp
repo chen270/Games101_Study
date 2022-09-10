@@ -8,12 +8,13 @@
 #define S_PATH(str) DIR_PATH##str
 #endif
 
-
 std::vector<cv::Point2f> control_points;
+
+#define BEZIER_NUM 4
 
 void mouse_handler(int event, int x, int y, int flags, void *userdata) 
 {
-    if (event == cv::EVENT_LBUTTONDOWN && control_points.size() < 4) 
+    if (event == cv::EVENT_LBUTTONDOWN && control_points.size() < BEZIER_NUM)
     {
         std::cout << "Left button of the mouse is clicked - position (" << x << ", "
         << y << ")" << '\n';
@@ -63,6 +64,8 @@ cv::Point2f recursive_bezier(const std::vector<cv::Point2f> &control_points, flo
     return calPoint(control_points[0], control_points[1], t);
 }
 
+// 反走样参考: https://blog.csdn.net/ycrsw/article/details/124117190
+
 void bezier(const std::vector<cv::Point2f> &control_points, cv::Mat &window) 
 {
     // TODO: Iterate through all t = 0 to t = 1 with small steps, and call de Casteljau's 
@@ -80,37 +83,37 @@ void bezier(const std::vector<cv::Point2f> &control_points, cv::Mat &window)
 如果出现“断裂”的现象可以适当降低t的间隔，“断裂”现象不会影响你的得分。
 */
 
-int main() 
+int main()
 {
-    cv::Mat window = cv::Mat(700, 700, CV_8UC3, cv::Scalar(0));
-    cv::cvtColor(window, window, cv::COLOR_BGR2RGB);
-    cv::namedWindow("Bezier Curve", cv::WINDOW_AUTOSIZE);
+	cv::Mat window = cv::Mat(700, 700, CV_8UC3, cv::Scalar(0));
+	cv::cvtColor(window, window, cv::COLOR_BGR2RGB);
+	cv::namedWindow("Bezier Curve", cv::WINDOW_AUTOSIZE);
 
-    cv::setMouseCallback("Bezier Curve", mouse_handler, nullptr);
+	cv::setMouseCallback("Bezier Curve", mouse_handler, nullptr);
 
-    int key = -1;
-    while (key != 27) 
-    {
-        for (auto &point : control_points) 
-        {
-            cv::circle(window, point, 3, {255, 255, 255}, 3);
-        }
+	int key = -1;
+	while (key != 27)
+	{
+		for (auto& point : control_points)
+		{
+			cv::circle(window, point, 3, { 255, 255, 255 }, 3);
+		}
 
-        if (control_points.size() == 4) 
-        {
-            naive_bezier(control_points, window);
+		if (control_points.size() == BEZIER_NUM)
+		{
+			naive_bezier(control_points, window);
 			bezier(control_points, window);
 
-            cv::imshow("Bezier Curve", window);
-            //cv::imwrite(S_PATH("./image/my_bezier_curve.png"), window);
-            key = cv::waitKey(0);
+			cv::imshow("Bezier Curve", window);
+			//cv::imwrite(S_PATH("./image/my_bezier_curve.png"), window);
+			key = cv::waitKey(0);
 
-            return 0;
-        }
+			return 0;
+		}
 
-        cv::imshow("Bezier Curve", window);
-        key = cv::waitKey(20);
-    }
+		cv::imshow("Bezier Curve", window);
+		key = cv::waitKey(20);
+	}
 
-return 0;
+	return 0;
 }
