@@ -208,6 +208,11 @@ Vector3f castRay(
 // primary rays and cast these rays into the scene. The content of the framebuffer is
 // saved to a file.
 // [/comment]
+// Ref:
+// 1.https://blog.csdn.net/Q_pril/article/details/123825665
+// 2.https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-generating-camera-rays/generating-camera-rays
+//
+
 void Renderer::Render(const Scene& scene)
 {
     std::vector<Vector3f> framebuffer(scene.width * scene.height);
@@ -230,7 +235,33 @@ void Renderer::Render(const Scene& scene)
             // Also, don't forget to multiply both of them with the variable *scale*, and
             // x (horizontal) variable with the *imageAspectRatio*            
 
-            Vector3f dir = Vector3f(x, y, -1); // Don't forget to normalize this direction!
+            // 1.光栅化空间坐标 (i, j);
+            // 像素中心点坐标 (i + 0.5f, j + 0.5f)
+            x = i + 0.5f;
+            y = j + 0.5f;
+
+            // 2.归一化
+            x /= (float)scene.height;
+            y /= (float)scene.width;
+
+            // 3.立方体从[0, 1]移动到 [-1, 1]坐标系
+            // 注: 屏幕左上角为 (0,0)坐标，移动到左下角为(-1,-1)坐标，所以y轴相反
+            x = -1.0f + 2.0f * x;
+            y = (-1.0f) * (-1.0f + 2.0f * y);
+
+            // 4.比例缩放
+            // 此时横纵坐标均分布在[-1,1]，但是这并不是世界坐标下图像真实映射过来的位置，原因有二：
+			// 4.1 横纵方向的长度并不是1:1的；
+            // 4.2 物体本身并不是在[-1, 1]的，[-1, 1]是缩放后的范围。
+            x = x * imageAspectRatio;
+
+            // 5.scale 视野
+            // scale为一半可看角度（fov/2）的tan值
+            x *= scale;
+            y *= scale;
+
+            //相机人眼坐标 (0,0,0), 这里 scene 在 z=-1，故znear距离人眼距离 = 1 
+            Vector3f dir = normalize(Vector3f(x, y, -1)); // Don't forget to normalize this direction!
             framebuffer[m++] = castRay(eye_pos, dir, scene, 0);
         }
         UpdateProgress(j / (float)scene.height);
