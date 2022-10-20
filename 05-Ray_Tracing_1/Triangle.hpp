@@ -4,24 +4,27 @@
 
 #include <cstring>
 
-bool rayTriangleIntersect(const Vector3f& v0, const Vector3f& v1, const Vector3f& v2, const Vector3f& orig,
-                          const Vector3f& dir, float& tnear, float& u, float& v)
+bool rayTriangleIntersect(const Vector3f &v0, const Vector3f &v1, const Vector3f &v2, const Vector3f &orig,
+                          const Vector3f &dir, float &tnear, float &u, float &v)
 {
     // TODO: Implement this function that tests whether the triangle
     // that's specified bt v0, v1 and v2 intersects with the ray (whose
     // origin is *orig* and direction is *dir*)
     // Also don't forget to update tnear, u and v.
 
-	//  v0, v1, v2 ÊÇÈı½ÇĞÎµÄÈı¸ö¶¥µã
-    // orig ÊÇ¹âÏßµÄÆğµã£¬dir ÊÇ¹âÏßµ¥Î»»¯µÄ·½ÏòÏòÁ¿¡£
+    // Moller Trumbore Algorithm (Moller-Trumbore)ï¼š
+    // å…‹è±å§†æ³•åˆ™
+
+    //  v0, v1, v2 æ˜¯ä¸‰è§’å½¢çš„ä¸‰ä¸ªé¡¶ç‚¹
+    // orig æ˜¯å…‰çº¿çš„èµ·ç‚¹ï¼Œdir æ˜¯å…‰çº¿å•ä½åŒ–çš„æ–¹å‘å‘é‡ã€‚
     Vector3f E1 = v1 - v0;
     Vector3f E2 = v2 - v0;
     Vector3f S = orig - v0;
     Vector3f S1 = crossProduct(dir, E2);
     Vector3f S2 = crossProduct(S, E1);
 
-    //if (dotProduct(S1, E1) <= 0) 
-    //    return false;
+    // if (dotProduct(S1, E1) <= 0)
+    //     return false;
 
     tnear = dotProduct(S2, E2) / dotProduct(S1, E1);
     u = dotProduct(S1, S) / dotProduct(S1, E1);
@@ -100,5 +103,7 @@ public:
     std::unique_ptr<Vector3f[]> vertices;
     uint32_t numTriangles;
     std::unique_ptr<uint32_t[]> vertexIndex;
+    std::unique_ptr<Vector2f[]> stCoordinates;
+};
     std::unique_ptr<Vector2f[]> stCoordinates;
 };
