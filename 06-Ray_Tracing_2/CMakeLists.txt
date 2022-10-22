@@ -8,10 +8,19 @@ set(THIRD_PARTY_DIR "${PROJECT_SOURCE_DIR}/../third_party/")
 add_definitions(-DDIR_PATH="${CMAKE_CURRENT_SOURCE_DIR}/")
 include_directories(${THIRD_PARTY_DIR})
 
+FILE(GLOB SRC_LIST "./src/*.cpp" "./src/*.hpp")
+SOURCE_GROUP("source" FILES ${SRC_LIST})
 
-add_executable(${TARGET} main.cpp Object.hpp Vector.cpp Vector.hpp Sphere.hpp global.hpp Triangle.hpp Scene.cpp
-        Scene.hpp Light.hpp AreaLight.hpp BVH.cpp BVH.hpp Bounds3.hpp Ray.hpp Material.hpp Intersection.hpp
-        Renderer.cpp Renderer.hpp)
+FILE(GLOB  HEAD_LIST "./src/*.h")
+SOURCE_GROUP("include" FILES ${HEAD_LIST})
+
+
+SET(ALL_SOURCES
+${SRC_LIST}
+${HEAD_LIST}
+)
+
+add_executable(${TARGET} ${ALL_SOURCES})
 
 
 if (MSVC)
@@ -27,3 +36,7 @@ if (MSVC)
 else()
     target_compile_options(${TARGET} PUBLIC -Wall -Wextra -pedantic -Wshadow -Wreturn-type -fsanitize=undefined)
 endif (MSVC)
+
+set(INSTALL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bin")
+set_target_properties(${TARGET} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG "${INSTALL_DIR}")
+set_target_properties(${TARGET} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${INSTALL_DIR}")

@@ -1,4 +1,4 @@
-//
+﻿//
 // Created by goksu on 2/25/20.
 //
 
@@ -35,7 +35,10 @@ void Renderer::Render(const Scene& scene)
             // *scale*, and x (horizontal) variable with the *imageAspectRatio*
 
             // Don't forget to normalize this direction!
-
+            //相机人眼坐标 (0,0,0), 这里 scene 在 z=-1，故znear距离人眼距离 = 1 
+            Vector3f dir = normalize(Vector3f(x, y, -1)); // Don't forget to normalize this direction!
+            Ray ray(eye_pos, dir);
+            framebuffer[m++] = scene.castRay(ray, 0);
         }
         UpdateProgress(j / (float)scene.height);
     }
