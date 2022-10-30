@@ -24,4 +24,6 @@ https://games-cn.org/forums/topic/allhw/
 笔记参考：
 1. https://blog.csdn.net/qq_38065509/category_9873936.html
 2. https://www.notion.so/GAMES101-b0e27c856cde429b8672671a54c34817
+3. https://www.zhihu.com/people/xiang-zi-91-83/posts
+4. https://www.zhihu.com/people/li-pei-zhen-58/posts
 
