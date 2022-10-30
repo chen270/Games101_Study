@@ -12,6 +12,9 @@ GAMES101课程将全面而系统地介绍现代计算机图形学的四大组成
 
 <br/>
 
+课程简介和课件:
+https://sites.cs.ucsb.edu/~lingqi/teaching/games101.html
+
 视频链接：
 https://www.bilibili.com/video/BV1X7411F744?spm_id_from=333.337.search-card.all.click&vd_source=e0845a8810646cc2dbfc38113a4da32b
 
