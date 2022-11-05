@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
-project(06_RayTracing)
-SET(TARGET "06_RayTracing")
+project(06_RayTracing_2)
+SET(TARGET "06_RayTracing_2")
 
 set(CMAKE_CXX_STANDARD 17)
 
