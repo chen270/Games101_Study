@@ -1,4 +1,4 @@
-//
+﻿//
 // Created by LEI XU on 5/16/19.
 //
 
@@ -19,13 +19,13 @@ struct Intersection
         obj =nullptr;
         m=nullptr;
     }
-    bool happened;
-    Vector3f coords;
-    Vector3f tcoords;
-    Vector3f normal;
-    Vector3f emit;
-    double distance;
-    Object* obj;
-    Material* m;
+    bool happened; // 是否产生（符合要求的）交点
+    Vector3f coords; // 交点坐标
+    Vector3f tcoords; // 插值的纹理坐标
+    Vector3f normal; // 交点所在平面法线
+    Vector3f emit; // 材质的自发光颜色
+    double distance; // 射线的传播距离，即t值
+    Object* obj; // 交点所在物体的物体类型
+    Material* m; // 交点所在物体的材料类型
 };
 #endif //RAYTRACING_INTERSECTION_H

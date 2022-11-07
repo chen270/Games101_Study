@@ -1,4 +1,4 @@
-//
+﻿//
 // Created by LEI XU on 5/16/19.
 //
 
@@ -159,6 +159,14 @@ float Material::pdf(const Vector3f &wi, const Vector3f &wo, const Vector3f &N){
     }
 }
 
+/** 
+* @brief BRDF 散射函数
+*         给定一对入射、出射方向与法向量，计算这种情况下的 f_r 值。
+*
+* @param wi  入射方向, view to p
+* @param wo  出射方向, 
+* @param N   交点的法线方向   
+*/
 Vector3f Material::eval(const Vector3f &wi, const Vector3f &wo, const Vector3f &N){
     switch(m_type){
         case DIFFUSE:
