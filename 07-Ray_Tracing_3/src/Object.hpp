@@ -1,7 +1,7 @@
 //
 // Created by LEI XU on 5/13/19.
 //
-#pragma once
+//#pragma once
 #ifndef RAYTRACING_OBJECT_H
 #define RAYTRACING_OBJECT_H
 
